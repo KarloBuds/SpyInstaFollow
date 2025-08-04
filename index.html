@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Quién no te sigue - Instagram</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<script>
+(async () => {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const userId = document.cookie.match(/ds_user_id=(\d+)/)[1];
+  const userInfoRes = await fetch(`https://i.instagram.com/api/v1/users/${userId}/info/`, {
+    headers: { 'x-ig-app-id': '936619743392459' }
+  });
+  const userInfo = await userInfoRes.json();
+  const username = userInfo.user.username || 'amig@';
+
+  const container = document.createElement('div');
+  Object.assign(container.style, {
+    position: 'fixed',
+    top: '5%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 'min(95vw, 700px)',
+    maxHeight: '90vh',
+    background: '#fff',
+    color: '#000',
+    borderRadius: '12px',
+    boxShadow: '0 0 20px rgba(0,0,0,0.2)',
+    zIndex: 9999,
+    padding: '20px',
+    overflowY: 'auto',
+    fontFamily: 'system-ui, sans-serif'
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.innerText = '❌';
+  Object.assign(closeBtn.style, {
+    position: 'absolute',
+    top: '5px',
+    right: '10px',
+    border: 'none',
+    background: 'transparent',
+    fontSize: '20px',
+    cursor: 'pointer',
+    color: '#999'
+  });
+  closeBtn.onclick = () => container.remove();
+
+  const title = document.createElement('h2');
+  title.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <img src="${userInfo.user.profile_pic_url}" alt="@${username}" style="width:40px;height:40px;border-radius:50%;border:2px solid #ccc;">
+      <div>
+        <div style="font-size:16px;">Hola <strong>@${username}</strong> 👋</div>
+        <div style="font-size:12px;color:#666;">¿Quién te dejó de seguir en Instagram? 🕵️‍♂️💔</div>
+        <div style="font-size:12px;color:#999;">*Solo muestra a los que tú sigues... y que ya no te siguen de vuelta 🙃</div>
+      </div>
+    </div>
+  `;
+
+  const filterInput = document.createElement('input');
+  filterInput.placeholder = '🔍 Filtrar por nombre o usuario';
+  Object.assign(filterInput.style, {
+    width: '100%',
+    padding: '6px',
+    marginBottom: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '6px'
+  });
+
+  const verifiedToggle = document.createElement('label');
+  Object.assign(verifiedToggle.style, {
+    display: 'block',
+    marginBottom: '10px',
+    fontSize: '13px'
+  });
+
+  const verifiedCheckbox = document.createElement('input');
+  verifiedCheckbox.type = 'checkbox';
+  verifiedCheckbox.checked = false;
+  verifiedCheckbox.style.marginRight = '5px';
+
+  verifiedToggle.appendChild(verifiedCheckbox);
+  verifiedToggle.appendChild(document.createTextNode('Incluir cuentas verificadas ✅'));
+
+  const progressBar = document.createElement('div');
+  Object.assign(progressBar.style, {
+    width: '100%',
+    height: '20px',
+    background: '#eee',
+    borderRadius: '10px',
+    position: 'relative',
+    marginBottom: '10px',
+    overflow: 'hidden'
+  });
+
+  const progressFill = document.createElement('div');
+  Object.assign(progressFill.style, {
+    height: '100%',
+    width: '0%',
+    background: '#4caf50',
+    transition: 'width 0.3s ease'
+  });
+
+  const progressLabel = document.createElement('div');
+  Object.assign(progressLabel.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    transition: 'color 0.3s ease'
+  });
+
+  progressBar.appendChild(progressFill);
+  progressBar.appendChild(progressLabel);
+
+  const list = document.createElement('ul');
+  Object.assign(list.style, {
+    listStyle: 'none',
+    padding: '0',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    marginBottom: '10px'
+  });
+
+  const status = document.createElement('p');
+  status.innerText = '¿Estás listo?';
+  status.style.marginTop = '10px';
+
+  const footer = document.createElement('div');
+  footer.innerText = 'Desarrollado por Karlo Buds · v060625.6';
+  Object.assign(footer.style, {
+    fontSize: '12px',
+    color: '#999',
+    textAlign: 'center',
+    marginTop: '15px'
+  });
+
+  const buttonContainer = document.createElement('div');
+  Object.assign(buttonContainer.style, {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px'
+  });
+
+  function baseBtn(bg) {
+    return {
+      flex: '1',
+      padding: '8px',
+      border: 'none',
+      borderRadius: '5px',
+      background: bg,
+      color: '#fff',
+      cursor: 'pointer'
+    };
+  }
+
+  const startBtn = document.createElement('button');
+  startBtn.innerText = 'Iniciar ▶️';
+  Object.assign(startBtn.style, baseBtn('#db8e30'));
+
+  const copyBtn = document.createElement('button');
+  copyBtn.innerText = 'Copiar lista';
+  Object.assign(copyBtn.style, baseBtn('#1976d2'));
+  copyBtn.style.display = 'none';
+  copyBtn.onclick = () => {
+    const lines = nonFollowers.map(u => `${u.full_name || '(Sin nombre)'} - @${u.username}`);
+    navigator.clipboard.writeText(lines.join('\n'));
+    alert('✅ Lista de usuarios copiada.');
+  };
+
+  const downloadBtn = document.createElement('button');
+  downloadBtn.innerText = '⬇️ Descargar lista';
+  Object.assign(downloadBtn.style, baseBtn('#388e3c'));
+  downloadBtn.style.display = 'none';
+  downloadBtn.onclick = () => {
+    const lines = nonFollowers.map(u => `${u.full_name || '(Sin nombre)'} - @${u.username}`);
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'no_te_siguen.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const stopBtn = document.createElement('button');
+  stopBtn.innerText = '🛑 Detener';
+  Object.assign(stopBtn.style, baseBtn('#d32f2f'));
+  stopBtn.style.display = 'none';
+  stopBtn.onclick = () => {
+    shouldStop = true;
+    status.innerText = '⏹️ Escaneo detenido manualmente.';
+    stopBtn.style.display = 'none';
+    startBtn.style.display = 'inline-block';
+    copyBtn.style.display = 'inline-block';
+    downloadBtn.style.display = 'inline-block';
+    verifiedCheckbox.disabled = false;
+  };
+
+  const restartBtn = document.createElement('button');
+  restartBtn.innerText = '🔄 Reiniciar';
+  Object.assign(restartBtn.style, baseBtn('#ffa000'));
+  restartBtn.style.display = 'none';
+  restartBtn.onclick = () => {
+    after = null;
+    hasNext = true;
+    shouldStop = false;
+    nonFollowers = [];
+    scanned = 0;
+    total = 0;
+    list.innerHTML = '';
+    progressFill.style.width = '0%';
+    progressLabel.innerText = '';
+    status.innerText = '⏳ Escaneando...';
+    restartBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    verifiedCheckbox.disabled = true;
+    scanFollowers();
+  };
+
+  startBtn.onclick = () => {
+    after = null;
+    hasNext = true;
+    shouldStop = false;
+    nonFollowers = [];
+    scanned = 0;
+    total = 0;
+    list.innerHTML = '';
+    progressFill.style.width = '0%';
+    progressLabel.innerText = '';
+    status.innerText = '⏳ Escaneando...';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    restartBtn.style.display = 'none';
+    copyBtn.style.display = 'none';
+    downloadBtn.style.display = 'none';
+    verifiedCheckbox.disabled = true;
+    scanFollowers();
+  };
+
+  buttonContainer.append(startBtn, copyBtn, downloadBtn, stopBtn, restartBtn);
+  container.append(closeBtn, title, filterInput, verifiedToggle, progressBar, list, buttonContainer, status, footer);
+  document.body.appendChild(container);
+
+  filterInput.addEventListener('input', () => {
+    const filter = filterInput.value.toLowerCase();
+    list.querySelectorAll('li').forEach(li => {
+      li.style.display = li.innerText.toLowerCase().includes(filter) ? '' : 'none';
+    });
+  });
+
+  let after = null;
+  let hasNext = true;
+  let shouldStop = false;
+  let nonFollowers = [];
+  let scanned = 0;
+  let total = 0;
+
+  function addToListSorted(node) {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <a href="https://instagram.com/${node.username}" target="_blank" style="display:flex;align-items:center;text-decoration:none;color:#000;">
+          <img src="${node.profile_pic_url}" alt="${node.username}" style="width:32px;height:32px;border-radius:50%;margin-right:10px;">
+          <div>
+            <div style="font-weight:bold;">
+              ${node.full_name || '(Sin nombre)'} ${node.is_verified ? '✅' : ''}
+            </div>
+            <div style="font-size:12px;color:#555;">@${node.username}</div>
+          </div>
+        </a>
+        <a href="https://instagram.com/${node.username}" target="_blank" style="margin-left:10px;font-size:12px;background:#f44336;color:#fff;padding:4px 6px;border-radius:5px;text-decoration:none;">Dejar de seguir</a>
+      </div>
+    `;
+    const items = Array.from(list.children);
+    const insertIndex = items.findIndex(item => {
+      const name = item.innerText.toLowerCase();
+      const newName = (node.full_name || node.username).toLowerCase();
+      return newName < name;
+    });
+    if (insertIndex === -1) list.appendChild(li);
+    else list.insertBefore(li, items[insertIndex]);
+  }
+
+  async function scanFollowers() {
+    while (hasNext && !shouldStop) {
+      const variables = {
+        id: userId,
+        include_reel: true,
+        fetch_mutual: false,
+        first: 24,
+        ...(after && { after })
+      };
+      const url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables=${encodeURIComponent(JSON.stringify(variables))}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const edgeFollow = data.data.user.edge_follow;
+      if (total === 0) total = edgeFollow.count;
+      for (const { node } of edgeFollow.edges) {
+        scanned++;
+        if (!node.follows_viewer && (verifiedCheckbox.checked || !node.is_verified)) {
+          nonFollowers.push(node);
+          addToListSorted(node);
+        }
+      }
+      const percent = Math.min(100, Math.round((scanned / total) * 100));
+      progressFill.style.width = percent + '%';
+      progressLabel.innerText = `${percent}% - ${scanned} de ${total}`;
+      progressLabel.style.color = percent < 40 ? '#000' : '#fff';
+      hasNext = edgeFollow.page_info.has_next_page;
+      after = edgeFollow.page_info.end_cursor;
+      await sleep(1500 + Math.random() * 800);
+    }
+
+    if (!shouldStop) {
+      status.innerText = `✅ Escaneo completo: ${nonFollowers.length} no te siguen`;
+      startBtn.style.display = 'inline-block';
+      stopBtn.style.display = 'none';
+      copyBtn.style.display = 'inline-block';
+      downloadBtn.style.display = 'inline-block';
+      verifiedCheckbox.disabled = false;
+    }
+  }
+})();
+
+
+</script>
+</body>
+</html>
