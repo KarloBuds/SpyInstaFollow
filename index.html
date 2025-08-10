@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SpyInstaFollow – Iniciar</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0}
+    .wrap{max-width:720px;margin:40px auto;padding:24px}
+    .card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+    h1{margin:0 0 8px;font-size:28px}
+    p{line-height:1.6}
+    .steps{display:grid;gap:16px;margin:20px 0}
+    .step{background:#0b1220;border:1px solid #243244;padding:16px;border-radius:12px}
+    .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:1px solid #334155;background:#1f2937;color:#e2e8f0;text-decoration:none}
+    .btn:hover{filter:brightness(1.05)}
+    code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+    .small{opacity:.85;font-size:14px}
+    .bookmarklet{word-break:break-all;user-select:all;background:#0b1220;border:1px dashed #334155;padding:12px;border-radius:8px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>SpyInstaFollow</h1>
+      <p>1) Inicia sesión en Instagram. 2) Ejecuta la app con el marcador.</p>
+
+      <div class="steps">
+        <div class="step">
+          <h3>Paso 1 — Inicia sesión</h3>
+          <p>
+            <a class="btn" href="https://www.instagram.com/accounts/login/?next=/">
+              Ir a iniciar sesión en Instagram
+            </a>
+          </p>
+          <p class="small">Cuando termines y estés dentro de <span class="mono">instagram.com</span>, regresa para el paso 2.</p>
+        </div>
+
+        <div class="step">
+          <h3>Paso 2 — Ejecuta la app</h3>
+          <p>Opción A (computadora): arrastra este botón a tu barra de marcadores y, ya dentro de Instagram, haz clic en el marcador:</p>
+          <p>
+            <a class="btn" href="javascript:(()=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KarloBuds/SpyInstaFollow@latest/dist/inject.min.js';s.async=true;document.documentElement.appendChild(s);})();">
+              ▶️ Ejecutar SpyInstaFollow
+            </a>
+          </p>
+
+          <p>Opción B (iPhone/iPad con Safari):</p>
+          <ol class="small">
+            <li>Mantén presionado el botón “▶️ Ejecutar SpyInstaFollow” y elige <b>Agregar Marcador</b>.</li>
+            <li>Abre <b>Marcadores ▸ Editar</b> y en la URL pega el código completo que empieza con <span class="mono">javascript:</span> (si no aparece, cópialo de aquí):</li>
+          </ol>
+          <div class="bookmarklet small">javascript:(()=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KarloBuds/SpyInstaFollow@latest/dist/inject.min.js';s.async=true;document.documentElement.appendChild(s);})();</div>
+
+          <p class="small"><b>Cómo usarlo:</b> Abre <span class="mono">instagram.com</span> (ya logueado) y toca/clic el marcador <i>SpyInstaFollow</i>. Se cargará la app sobre Instagram.</p>
+        </div>
+      </div>
+
+      <p class="small">Por seguridad del navegador, esta página no puede “loguearte” ni ejecutar código dentro de Instagram automáticamente; el marcador es la forma correcta.</p>
+    </div>
+  </div>
+</body>
+</html>
